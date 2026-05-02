@@ -103,54 +103,9 @@ resource "helm_release" "argocd" {
 }
 
 # ---------------------------------------------------------------------------
-# ArgoCD Server Ingress
-# Creates a GCP HTTP(S) External Load Balancer via GKE Ingress controller.
-# The annotation "kubernetes.io/ingress.class: gce" is the key that triggers
-# GKE to provision and manage a GCP Load Balancer.
+# ArgoCD Server Ingress (REMOVED)
+# The old GCE HTTP-only ingress was manually deleted and replaced by a
+# Gateway API HTTPRoute managed in cuonline-gitops/manifests/argocd-httproute.yaml.
+# ArgoCD is now served over HTTPS via the shared external Gateway with a
+# wildcard certificate — no separate GCE Ingress is needed.
 # ---------------------------------------------------------------------------
-resource "kubernetes_ingress_v1" "argocd" {
-  metadata {
-    name      = "argocd-server-ingress"
-    namespace = var.argocd_namespace
-
-    annotations = {
-      # Use the GCE ingress controller to provision a GCP HTTPS LB
-      "kubernetes.io/ingress.class" = "gce"
-
-      # Allow HTTP (port 80) — needed since ArgoCD server runs in insecure mode
-      "kubernetes.io/ingress.allow-http" = "true"
-    }
-
-    labels = {
-      app        = "argocd"
-      managed-by = "terraform"
-    }
-  }
-
-  spec {
-    rule {
-      http {
-        path {
-          path      = "/*"
-          path_type = "ImplementationSpecific"
-          backend {
-            service {
-              # This service name matches what the ArgoCD Helm chart creates
-              name = "argocd-server"
-              port {
-                number = 80
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  # Wait for the Helm release to finish before creating the Ingress
-  depends_on = [helm_release.argocd]
-
-  timeouts {
-    create = "10m"
-  }
-}

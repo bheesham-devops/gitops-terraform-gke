@@ -66,10 +66,12 @@ resource "google_container_cluster" "primary" {
   # Override the bootstrap node's disk type to avoid SSD quota issues on new
   # projects. This node is deleted immediately after the cluster is created
   # (remove_default_node_pool = true), so these settings are temporary.
+  # Values are kept in sync with the managed node pool to avoid Terraform drift.
   node_config {
     disk_type    = "pd-standard"
-    disk_size_gb = 30
-    machine_type = "e2-medium"
+    disk_size_gb = var.node_disk_size_gb
+    machine_type = var.node_machine_type
+    tags         = ["gke-node", "http-server", "https-server"]
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
   }
 

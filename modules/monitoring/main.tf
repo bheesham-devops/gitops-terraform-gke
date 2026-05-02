@@ -144,7 +144,7 @@ resource "kubernetes_manifest" "grafana_httproute" {
             {
               group  = ""
               kind   = "Service"
-              name   = "monitoring-grafana"  # Set by fullnameOverride + subchart
+              name   = "kube-prom-stack-grafana"  # Helm release name prefix (kube-prom-stack) + subchart
               port   = 80
               weight = 1
             }
