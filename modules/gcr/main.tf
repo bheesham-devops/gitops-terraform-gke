@@ -67,6 +67,13 @@ resource "google_project_iam_member" "cicd_storage" {
   member  = "serviceAccount:${google_service_account.cicd.email}"
 }
 
+# Allows the CI/CD SA to read enabled GCP API states during terraform plan.
+resource "google_project_iam_member" "cicd_service_usage" {
+  project = var.project_id
+  role    = "roles/serviceusage.serviceUsageViewer"
+  member  = "serviceAccount:${google_service_account.cicd.email}"
+}
+
 resource "google_artifact_registry_repository_iam_member" "gke_nodes_pull" {
   project    = var.project_id
   location   = var.region
