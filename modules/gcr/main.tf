@@ -8,9 +8,14 @@
 #   1. Enable artifactregistry.googleapis.com API
 #   2. Docker repository  : <project_name>-<environment>-docker
 #   3. CI/CD Service Account : <project_name>-<environment>-cicd-sa
-#   4. IAM Writer  → CI/CD SA   (GitHub Actions pushes images)
+#   4. IAM roles → CI/CD SA (Terraform + Docker push permissions)
+#        - roles/editor                            CRUD on all GCP resources
+#        - roles/resourcemanager.projectIamAdmin   Manage IAM bindings
+#        - roles/iam.serviceAccountAdmin           Create/manage service accounts
+#        - roles/iam.serviceAccountKeyAdmin        Create/manage SA keys
+#        - roles/storage.admin                     Read/write GCS Terraform state
 #   5. IAM Reader  → GKE node SA (cluster nodes pull images)
-#   6. SA JSON key  → output as GCR_SA_KEY GitHub Actions secret
+#   6. SA JSON key  → output as GCP_SA_KEY GitHub Actions secret
 #
 # Image URL format:
 #   <region>-docker.pkg.dev/<project_id>/<repo_id>/<image>:<tag>
@@ -52,25 +57,46 @@ resource "google_artifact_registry_repository_iam_member" "cicd_push" {
   member     = "serviceAccount:${google_service_account.cicd.email}"
 }
 
-# Allows the CI/CD SA to fetch GKE cluster credentials (container.clusters.get)
-# required by `gcloud container clusters get-credentials` in the pipeline.
-resource "google_project_iam_member" "cicd_gke" {
+# ---------------------------------------------------------------------------
+# CI/CD SA IAM Roles — Industry-standard Terraform SA permission set
+#
+# roles/editor                          → CRUD on all GCP resources (compute,
+#                                         GKE, DNS, Certificate Manager, etc.)
+#                                         Covers both terraform plan & apply.
+# roles/resourcemanager.projectIamAdmin → Required to manage google_project_
+#                                         iam_member resources in Terraform.
+# roles/iam.serviceAccountAdmin         → Required to create/manage SAs.
+# roles/iam.serviceAccountKeyAdmin      → Required to create SA JSON keys.
+# roles/storage.admin                   → Read/write the GCS remote state
+#                                         bucket (terraform init + plan + apply)
+# ---------------------------------------------------------------------------
+resource "google_project_iam_member" "cicd_editor" {
   project = var.project_id
-  role    = "roles/container.developer"
+  role    = "roles/editor"
   member  = "serviceAccount:${google_service_account.cicd.email}"
 }
 
-# Allows the CI/CD SA to read/write GCS Terraform state bucket.
-resource "google_project_iam_member" "cicd_storage" {
+resource "google_project_iam_member" "cicd_iam_admin" {
   project = var.project_id
-  role    = "roles/storage.objectAdmin"
+  role    = "roles/resourcemanager.projectIamAdmin"
   member  = "serviceAccount:${google_service_account.cicd.email}"
 }
 
-# Allows the CI/CD SA to read enabled GCP API states during terraform plan.
-resource "google_project_iam_member" "cicd_service_usage" {
+resource "google_project_iam_member" "cicd_sa_admin" {
   project = var.project_id
-  role    = "roles/serviceusage.serviceUsageViewer"
+  role    = "roles/iam.serviceAccountAdmin"
+  member  = "serviceAccount:${google_service_account.cicd.email}"
+}
+
+resource "google_project_iam_member" "cicd_sa_key_admin" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountKeyAdmin"
+  member  = "serviceAccount:${google_service_account.cicd.email}"
+}
+
+resource "google_project_iam_member" "cicd_storage_admin" {
+  project = var.project_id
+  role    = "roles/storage.admin"
   member  = "serviceAccount:${google_service_account.cicd.email}"
 }
 
