@@ -100,6 +100,66 @@ resource "helm_release" "kube_prometheus_stack" {
     value = "30d"
   }
 
+  # Persistent storage — prevents metric loss on pod restarts (30d retention needs durable storage)
+  # Uses GKE's standard-rwo StorageClass (ReadWriteOnce regional persistent disk)
+  set {
+    name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
+    value = "standard-rwo"
+  }
+  set {
+    name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.accessModes[0]"
+    value = "ReadWriteOnce"
+  }
+  set {
+    name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
+    value = "20Gi"
+  }
+
+  # Resource requests & limits — prevent Prometheus from causing node memory pressure
+  # on e2-standard-2 nodes (8 GB RAM). Requests guarantee scheduling, limits cap runaway usage.
+  set {
+    name  = "prometheus.prometheusSpec.resources.requests.cpu"
+    value = "200m"
+  }
+  set {
+    name  = "prometheus.prometheusSpec.resources.requests.memory"
+    value = "512Mi"
+  }
+  set {
+    name  = "prometheus.prometheusSpec.resources.limits.cpu"
+    value = "500m"
+  }
+  set {
+    name  = "prometheus.prometheusSpec.resources.limits.memory"
+    value = "2Gi"
+  }
+
+  # ------- GKE Control-Plane Components ----------------------------------
+  # GKE manages kube-scheduler, kube-controller-manager and kube-proxy as
+  # opaque GCP-side components — their metrics endpoints are not reachable
+  # from the data plane. Disabling these prevents the three CRITICAL firing
+  # alerts: KubeSchedulerDown, KubeControllerManagerDown, KubeProxyDown.
+  set {
+    name  = "kubeScheduler.enabled"
+    value = "false"
+  }
+  set {
+    name  = "kubeControllerManager.enabled"
+    value = "false"
+  }
+  set {
+    name  = "kubeProxy.enabled"
+    value = "false"
+  }
+
+  # GKE ships kube-dns (not upstream CoreDNS) — the standard CoreDNS
+  # ServiceMonitor targeting port 9153 finds no responding container,
+  # causing the TargetDown WARNING alert. Disable to stop false-positive.
+  set {
+    name  = "coreDns.enabled"
+    value = "false"
+  }
+
   # ------- Alertmanager --------------------------------------------------
   set {
     name  = "alertmanager.service.type"
