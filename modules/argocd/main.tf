@@ -33,9 +33,9 @@ resource "helm_release" "argocd" {
   chart            = "argo-cd"
   version          = var.argocd_chart_version
   namespace        = kubernetes_namespace.argocd.metadata[0].name
-  create_namespace = false  # Namespace already created above
-  timeout          = 600    # 10-minute timeout for chart installation
-  wait             = true   # Block until all pods are Running/Ready
+  create_namespace = false # Namespace already created above
+  timeout          = 600   # 10-minute timeout for chart installation
+  wait             = true  # Block until all pods are Running/Ready
 
   # ---------------------------------------------------------------------------
   # ArgoCD Configuration Values

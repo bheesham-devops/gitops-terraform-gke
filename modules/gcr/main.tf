@@ -52,6 +52,21 @@ resource "google_artifact_registry_repository_iam_member" "cicd_push" {
   member     = "serviceAccount:${google_service_account.cicd.email}"
 }
 
+# Allows the CI/CD SA to fetch GKE cluster credentials (container.clusters.get)
+# required by `gcloud container clusters get-credentials` in the pipeline.
+resource "google_project_iam_member" "cicd_gke" {
+  project = var.project_id
+  role    = "roles/container.developer"
+  member  = "serviceAccount:${google_service_account.cicd.email}"
+}
+
+# Allows the CI/CD SA to read/write GCS Terraform state bucket.
+resource "google_project_iam_member" "cicd_storage" {
+  project = var.project_id
+  role    = "roles/storage.objectAdmin"
+  member  = "serviceAccount:${google_service_account.cicd.email}"
+}
+
 resource "google_artifact_registry_repository_iam_member" "gke_nodes_pull" {
   project    = var.project_id
   location   = var.region

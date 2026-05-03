@@ -83,7 +83,7 @@ resource "google_container_cluster" "primary" {
 
   # VPC-native networking — enables alias IPs for Pods and Services
   ip_allocation_policy {
-    cluster_secondary_range_name  = var.pods_range_name    # Pod IPs
+    cluster_secondary_range_name  = var.pods_range_name     # Pod IPs
     services_secondary_range_name = var.services_range_name # Service IPs
   }
 
@@ -249,10 +249,10 @@ resource "google_container_node_pool" "primary_nodes" {
 
     # Labels for node selection and cost attribution
     labels = {
-      environment  = var.environment
-      project      = var.project_name
-      managed-by   = "terraform"
-      node-pool    = "primary"
+      environment = var.environment
+      project     = var.project_name
+      managed-by  = "terraform"
+      node-pool   = "primary"
     }
 
     # Network tags used by firewall rules

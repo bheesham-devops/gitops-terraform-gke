@@ -57,8 +57,8 @@ resource "google_certificate_manager_certificate" "wildcard" {
 
   managed {
     domains = [
-      "*.${var.domain}",  # Covers argocd.*, grafana.*, prometheus.*, app.*
-      var.domain,          # Covers the root domain itself
+      "*.${var.domain}", # Covers argocd.*, grafana.*, prometheus.*, app.*
+      var.domain,        # Covers the root domain itself
     ]
     dns_authorizations = [
       google_certificate_manager_dns_authorization.root.id,
@@ -83,8 +83,8 @@ resource "google_certificate_manager_certificate_map_entry" "wildcard" {
   map          = google_certificate_manager_certificate_map.cert_map.name
   certificates = [google_certificate_manager_certificate.wildcard.id]
   # PRIMARY matcher = default fallback entry, applies to all unmatched hostnames
-  matcher      = "PRIMARY"
-  description  = "Wildcard cert entry — applies to all *.${var.domain} hostnames"
+  matcher     = "PRIMARY"
+  description = "Wildcard cert entry — applies to all *.${var.domain} hostnames"
 }
 
 # ---------------------------------------------------------------------------
@@ -225,7 +225,7 @@ resource "kubernetes_manifest" "http_redirect" {
           kind        = "Gateway"
           name        = var.gateway_name
           namespace   = var.gateway_namespace
-          sectionName = "http"   # Attach to the HTTP (port 80) listener only
+          sectionName = "http" # Attach to the HTTP (port 80) listener only
         }
       ]
 
@@ -237,7 +237,7 @@ resource "kubernetes_manifest" "http_redirect" {
               type = "RequestRedirect"
               requestRedirect = {
                 scheme     = "https"
-                statusCode = 301  # Permanent redirect
+                statusCode = 301 # Permanent redirect
               }
             }
           ]

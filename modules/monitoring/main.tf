@@ -45,7 +45,7 @@ resource "helm_release" "kube_prometheus_stack" {
   version          = var.chart_version
   namespace        = kubernetes_namespace.monitoring.metadata[0].name
   create_namespace = false
-  timeout          = 600   # Allow 10 min for CRDs + all pods to become ready
+  timeout          = 600 # Allow 10 min for CRDs + all pods to become ready
   wait             = true
 
   # Use a predictable fullname so service names are always deterministic
@@ -204,7 +204,7 @@ resource "kubernetes_manifest" "grafana_httproute" {
             {
               group  = ""
               kind   = "Service"
-              name   = "kube-prom-stack-grafana"  # Helm release name prefix (kube-prom-stack) + subchart
+              name   = "kube-prom-stack-grafana" # Helm release name prefix (kube-prom-stack) + subchart
               port   = 80
               weight = 1
             }
@@ -248,8 +248,8 @@ resource "kubernetes_manifest" "prometheus_httproute" {
         {
           backendRefs = [
             {
-              group  = ""
-              kind   = "Service"
+              group = ""
+              kind  = "Service"
               # fullnameOverride="monitoring" → prometheus service = "monitoring-prometheus"
               name   = "monitoring-prometheus"
               port   = 9090

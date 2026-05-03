@@ -25,8 +25,8 @@ resource "google_project_service" "apis" {
     "logging.googleapis.com",
     "monitoring.googleapis.com",
     "dns.googleapis.com",
-    "certificatemanager.googleapis.com",   # Google Certificate Manager (managed SSL)
-    "networkservices.googleapis.com",      # Required for GKE Gateway API
+    "certificatemanager.googleapis.com", # Google Certificate Manager (managed SSL)
+    "networkservices.googleapis.com",    # Required for GKE Gateway API
   ])
 
   project            = var.project_id
