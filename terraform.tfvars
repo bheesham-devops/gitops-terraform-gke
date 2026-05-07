@@ -25,8 +25,8 @@ cluster_name       = "cu-online-gke"
 kubernetes_version = "latest"
 node_machine_type  = "e2-standard-2"
 node_disk_size_gb  = 50
-node_count_initial = 2
-node_min_count     = 2
+node_count_initial = 1
+node_min_count     = 1
 node_max_count     = 3
 
 # Application namespace
