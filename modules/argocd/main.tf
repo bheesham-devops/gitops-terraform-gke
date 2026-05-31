@@ -47,10 +47,10 @@ resource "helm_release" "argocd" {
     value = "true"
   }
 
-  # NodePort service is required for GKE Ingress to route traffic
+  # ClusterIP service is required for GKE Gateway API to route traffic
   set {
     name  = "server.service.type"
-    value = "NodePort"
+    value = "ClusterIP"
   }
 
   # Expose the ArgoCD server on port 80 (Ingress will forward to this)
